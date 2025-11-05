@@ -20,7 +20,7 @@ jobs:
         python-version: '3.11'
     
     - name: Install dependencies
-      run: pip install fastapi uvicorn python-multipart faiss-cpu==1.7.4 langdetect googletrans==4.0.0rc1 "numpy<2" scipy scikit-learn
+      run: pip install fastapi uvicorn python-multipart faiss-cpu==1.7.4 langdetect googletrans==4.0.0rc1 "numpy<2" scipy scikit-learn sentence-transformers
     
     - name: Test FastAPI import
       run: python -c "from fastapi import FastAPI; print('FastAPI OK')"
