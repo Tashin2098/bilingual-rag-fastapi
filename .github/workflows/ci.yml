@@ -1,21 +1,46 @@
-name: CI/CD
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - name: Install dependencies
-        run: |
-          pip install fastapi uvicorn faiss-cpu sentence-transformers langdetect googletrans==4.0.0-rc1 python-multipart
-      - name: Build Docker image
-        run: docker build -t healthcare-llm-backend .
-      # Add further deployment steps as needed
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Lint with flake8 (optional)
+      run: |
+        pip install flake8
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      continue-on-error: true
+    
+    - name: Build Docker image
+      run: |
+        docker build -t healthcare-rag-backend:latest .
+    
+    - name: Test Docker container
+      run: |
+        docker run -d -p 8000:8000 --name test-container healthcare-rag-backend:latest
+        sleep 10
+        curl -f http://localhost:8000/docs || exit 1
+        docker stop test-container
+        docker rm test-container
+    
+    - name: Success notification
+      run: echo "✅ Build and tests completed successfully!"
