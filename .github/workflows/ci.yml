@@ -1,0 +1,21 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: |
+          pip install fastapi uvicorn faiss-cpu sentence-transformers langdetect googletrans==4.0.0-rc1 python-multipart
+      - name: Build Docker image
+        run: docker build -t healthcare-llm-backend .
+      # Add further deployment steps as needed
