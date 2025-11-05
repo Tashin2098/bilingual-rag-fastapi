@@ -19,16 +19,17 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Install dependencies (lightweight)
-      run: |
-        python -m pip install --upgrade pip
-        pip install fastapi uvicorn python-multipart faiss-cpu==1.7.4 langdetect googletrans==4.0.0rc1 numpy<2 scipy scikit-learn
+    - name: Install dependencies
+      run: pip install fastapi uvicorn python-multipart faiss-cpu==1.7.4 langdetect googletrans==4.0.0rc1 "numpy<2" scipy scikit-learn
     
-    - name: Test API imports
-      run: |
-        python -c "from fastapi import FastAPI; print('✅ FastAPI import successful!')"
-        python -c "import faiss; print('✅ FAISS import successful!')"
-        python -c "from sentence_transformers import SentenceTransformer; print('✅ Sentence-Transformers import successful!')"
+    - name: Test FastAPI import
+      run: python -c "from fastapi import FastAPI; print('FastAPI OK')"
     
-    - name: Success message
-      run: echo "✅ CI pipeline passed! All imports working."
+    - name: Test FAISS import
+      run: python -c "import faiss; print('FAISS OK')"
+    
+    - name: Test Sentence Transformers import
+      run: python -c "from sentence_transformers import SentenceTransformer; print('Sentence-Transformers OK')"
+    
+    - name: All tests passed
+      run: echo "SUCCESS - All imports working"
