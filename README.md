@@ -1,49 +1,88 @@
-Bilingual Healthcare RAG Backend
-Overview
-This project is a backend for a Retrieval-Augmented Generation (RAG) powered healthcare assistant that enables clinicians to retrieve guidelines and research summaries in both English and Japanese. It supports document ingestion, semantic search, answer synthesis, bilingual output, and demonstrates scalable, modular architecture with modern CI/CD and Docker deployment.
+# Bilingual Healthcare RAG Backend
 
-Setup Instructions
-1. Clone and Prepare
-bash
-git clone <your-repo-url>
-cd <your-project-folder>
-2. (Option 1) Run Locally
-bash
+A Retrieval-Augmented Generation (RAG) backend for answering clinical questions from medical guidelines, supporting both English and Japanese. Handles multilingual ingestion (.txt), chunking, vector search with sentence-transformers + FAISS, mock answer generation, translation, and API-key security. Built for modularity, CI/CD, and Dockerized deployment.
+
+---
+
+## Setup Instructions
+
+**1. Clone the repo:**
+```sh
+git clone https://github.com/Tashin2098/bilingual-rag-fastapi.git
+cd bilingual-rag-fastapi
+```
+
+**2. (Option 1) Run Locally:**
+```sh
 python -m venv venv
-# Windows:
+# Windows
 .\venv\Scripts\activate
-# Mac/Linux:
+# Mac/Linux
 source venv/bin/activate
+
 pip install -r requirements.txt
 uvicorn main:app --reload
-# Visit http://localhost:8000/docs in your browser
-3. (Option 2) Run with Docker
-bash
+```
+Visit: http://localhost:8000/docs
+
+**3. (Option 2) Run with Docker:**
+```sh
 docker build -t healthcare-rag-backend .
-docker run -d -p 8000:8000 --name rag-api healthcare-rag-backend
-# Visit http://localhost:8000/docs
-API Endpoints
-/ingest (POST): Accepts .txt files in English or Japanese, detects language, generates embeddings, and stores content in FAISS.
+docker run -d -p 8000:8000 --name rag-app healthcare-rag-backend
+```
+Visit: http://localhost:8000/docs
 
-/retrieve (GET): Accepts queries in either language, returns top-3 relevant document chunks with similarity scores.
+---
 
-/generate (GET): Combines retrieved docs and query into a mock LLM response, supporting bilingual output (output_language toggle).
+## API Endpoints
 
-All endpoints are secured with an API key (X-API-Key header).
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/ingest` | POST | Upload .txt files (English or Japanese). Auto language detection, embedding generation, FAISS storage. |
+| `/retrieve` | GET | Query in English or Japanese. Returns top-3 relevant text chunks with similarity scores. |
+| `/generate` | GET | Combines best documents + query; returns synthesized answer. Supports `output_language` toggle (en/ja). |
 
-Design Notes
-Scalability
-Your backend is stateless and built with FastAPI, making it straightforward to scale horizontally (run multiple containers or deploy via cloud services). FAISS handles rapid similarity search across thousands of vector-encoded document chunks, keeping retrieval fast as your corpus grows. If data size exceeds single-machine limits, you can swap FAISS for a cloud-native vector store without reworking the API.
+**All endpoints require:** `X-API-Key: my_very_secret_key_123`
 
-Modularity
-The ingestion, retrieval, generation, translation, and security components are implemented independently. This means you can swap out sentence-transformers for a more advanced LLM, add new languages or translation tools, or upgrade the vector DB easily. All major functions are separate—future upgrades need little code refactoring.
+**Example API test:**
+```bash
+curl -X POST "http://localhost:8000/ingest" \
+  -H "X-API-Key: my_very_secret_key_123" \
+  -F "file=@yourfile.txt"
+```
 
-Future Improvements
-To take full advantage of production-readiness, you could add real large language model integration, support more document formats (PDF, DOCX), implement robust user authentication (OAuth2/JWT), log/monitor requests, and add rate limiting. As the codebase is clean and containerized, these enhancements can be built incrementally without breaking existing functionality.
+---
 
-CI/CD & Deployment
-GitHub Actions workflow (.github/workflows/ci.yml) checks dependencies and core module imports on every push.
+## Security
 
-Dockerfile ensures portable, reproducible builds for local and cloud environments.
+All endpoints require an API key in the header:
+```
+X-API-Key: my_very_secret_key_123
+```
 
-Note: Automated Docker builds in GitHub Actions are skipped due to ML dependency size (see Design Notes above).
+---
+
+## Design Notes
+
+### Scalability
+The API is stateless (via FastAPI) and uses FAISS for efficient similarity search. This allows scaling by running multiple containers behind a load balancer or switching to distributed vector stores if data/traffic become very large. All endpoints are separated for flexible, independent scaling.
+
+### Modularity
+Each function—ingestion, retrieval, generation, translation, and security—is implemented as a separate component. This enables you to upgrade to a production LLM, use an alternate vector DB, add new languages, or change translation services without major code rewrites. Security can be upgraded from API Key to OAuth as needed.
+
+### Future Improvements
+- Integrate production LLM for richer answer generation (OpenAI, Claude, etc.)
+- Support additional file types (PDF, DOCX) and more languages
+- Add robust authentication (OAuth2, JWT), monitoring, and rate limiting
+- Use cloud-native vector DB for cross-node queries at scale
+- Implement caching and request batching for high-throughput scenarios
+
+---
+
+## CI/CD & Deployment
+
+- **GitHub Actions:** `.github/workflows/ci.yml` runs tests and import checks on every commit.
+- **Docker:** `Dockerfile` provides reproducible builds on any machine or cloud environment.
+
+---
+
